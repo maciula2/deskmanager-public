@@ -191,6 +191,4 @@ py -m  deskmanager_app/manage.py collectstatic
     
 
 ## License
-
-_No license is currently defined. Please add a LICENSE file (e.g., MIT, Apache-2.0)._
-DeskManager is licensed under the [Apache-2.0](https://github.com/maciula2/deskmanager-public/blob/main/LICENSE) license
+DeskManager is licensed under the [Apache-2.0](https://github.com/maciula2/deskmanager-public/blob/main/LICENSE) license.
