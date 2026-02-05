@@ -1,0 +1,222 @@
+<!DOCTYPE html> {% load tailwind_tags %} {% tailwind_css %} {% load static %} {{ request.user.id|json_script:"user_id" }}
+<html lang="en">
+  <head>
+    <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
+    <script src="{% static 'js/core/core.js' %}" defer></script>
+    <script src="{% static 'js/edit/load_desk_layout_edit.js' %}" defer></script>
+    <script src="{% static 'js/edit/buttons.js' %}" defer></script>
+    <script src="{% static 'js/core/csrf_cookie.js' %}" defer></script>
+    <script src="{% static 'js/edit/room_select_menu_edit.js' %}" defer></script>
+    <script src="{% static 'js/edit/configure_desks_btn.js' %}" defer></script> 
+    <script src="{% static 'js/edit/desk_schedule_popup.js' %}" defer></script> 
+    <script src="{% static 'js/edit/user_schedule_popup.js' %}" defer></script> 
+    <script src="{% static 'js/edit/room_layout_edit.js' %}" defer></script> 
+    <script src="{% static 'js/interact.min.js' %}"></script>
+    <meta charset="UTF-8">
+  </head>
+  <body class="bg-gray-50 text-gray-800 min-h-screen flex flex-col">
+    <header class="bg-white shadow-sm w-full z-40 sticky top-0 border-b border-gray-100">
+      <div class="max-w-8xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-6">
+          <h1 id="app-logo" class="bg-gradient-to-r from-violet-700 to-purple-600 bg-clip-text text-transparent font-bold text-2xl select-none tracking-tight"> DeskManager </h1>
+          <div class="relative w-full max-w-xs flex gap-3">
+            <button id="room-select-btn" aria-pressed="false" aria-haspopup="true" aria-expanded="false" class="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md">
+              <svg id="room-icon" class="h-6 text-white transition-transform" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                <path fill-rule="evenodd" d="M4 4a1 1 0 0 1 1-1h14a1 1 0 1 1 0 2v14a1 1 0 1 1 0 2H5a1 1 0 1 1 0-2V5a1 1 0 0 1-1-1Zm5 2a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1H9Zm5 0a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-1Zm-5 4a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1H9Zm5 0a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1a1 1 0 0 0-1-1h-1Zm-3 4a2 2 0 0 0-2 2v3h2v-3h2v3h2v-3a2 2 0 0 0-2-2h-2Z" clip-rule="evenodd" />
+              </svg>
+            </button>
+            <button id="layout-edit-btn" class="flex items-center gap-1.5 bg-violet-600 hover:bg-violet-700 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md" aria-pressed="false" >
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M8.4 6.763c-.251.1-.383.196-.422.235L6.564 5.584l2.737-2.737c1.113-1.113 3.053-1.097 4.337.187l1.159 1.159a1 1 0 0 1 1.39.022l4.105 4.105a1 1 0 0 1 .023 1.39l1.345 1.346a1 1 0 0 1 0 1.415l-2.052 2.052a1 1 0 0 1-1.414 0l-1.346-1.346a1 1 0 0 1-1.323.039L11.29 8.983a1 1 0 0 1 .04-1.324l-.849-.848c-.18-.18-.606-.322-1.258-.25a3.271 3.271 0 0 0-.824.202Zm1.519 3.675L3.828 16.53a1 1 0 0 0 0 1.414l2.736 2.737a1 1 0 0 0 1.414 0l6.091-6.091-4.15-4.15Z"/>
+            </svg>
+            </button>
+            <div id="room-select-menu" class="hidden select-none absolute mt-2 w-38 rounded-lg bg-white ring-1 ring-gray-200/80 z-40 mt-15 overflow-hidden animate-fade-in" style="margin-left: calc(var(--spacing) * -45); margin-top: calc(var(--spacing) * 16)">
+              <div id="room-select-container" class="divide-y divide-gray-100">
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          {% if user.is_superuser %}
+          <button id="exit-edit-mode-btn" class="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md">
+            <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+              <path fill-rule="evenodd" d="M6 5V4a1 1 0 1 1 2 0v1h3V4a1 1 0 1 1 2 0v1h3V4a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v2H3V7a2 2 0 0 1 2-2h1ZM3 19v-8h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Zm5-6a1 1 0 1 0 0 2h8a1 1 0 1 0 0-2H8Z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+          {% endif %}
+          <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-50">
+            <span class="text-sm font-medium text-gray-500">Zalogowano jako:</span> {% if user.is_superuser %} <span id="username_display" class="font-semibold bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">
+              {{ user.username }}
+            </span> {% else %} <span id="username_display" class="font-semibold text-violet-700">
+              {{ user.username }}
+            </span> {% endif %}
+          </div>
+          <button id="logout-btn" class="flex items-center justify-center gap-1.5 bg-red-500 hover:bg-red-600 text-white font-medium px-4 py-2 rounded-lg shadow-sm transition-all duration-200 hover:shadow-md group">
+            <svg class="w-4 h-4 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a2 2 0 01-2 2H6a2 2 0 01-2-2V7a2 2 0 012-2h5a2 2 0 012 2v1" />
+            </svg>
+            <span class="hidden sm:inline">Wyloguj się</span>
+          </button>
+        </div>
+      </div>
+      <div class="edit-options-menu fixed bottom-8 left-1/2 -translate-x-1/2 w-max min-h-fit max-h-[400px] shadow-sm rounded-2xl bg-white p-3 ring-1 ring-black/5 z-50 animate-in fade-in slide-in-from-bottom-4 duration-300 hidden">
+          <div class="edit-options-content flex flex-row items-center justify-center gap-2">
+              <button id="edit-create-btn" class="flex items-center justify-center bg-teal-500 hover:bg-teal-600 text-white p-3 rounded-xl shadow-sm transition-all duration-200 hover:shadow-lg" aria-pressed="false">
+                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14m-7 7V5"/>
+                </svg>
+              </button>
+              <button id="edit-remove-btn" class="flex items-center justify-center bg-rose-500 hover:bg-rose-600 text-white p-3 rounded-xl shadow-sm transition-all duration-200 hover:shadow-lg" aria-pressed="false">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-trash-fill" viewBox="0 0 16 16">
+                  <path d="M2.5 1a1 1 0 0 0-1 1v1a1 1 0 0 0 1 1H3v9a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V4h.5a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H10a1 1 0 0 0-1-1H7a1 1 0 0 0-1 1zm3 4a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 .5-.5M8 5a.5.5 0 0 1 .5.5v7a.5.5 0 0 1-1 0v-7A.5.5 0 0 1 8 5m3 .5v7a.5.5 0 0 1-1 0v-7a.5.5 0 0 1 1 0"/>
+                </svg>
+              </button>
+              <button id="edit-undo-btn" class="flex items-center justify-center bg-amber-500 hover:bg-amber-600 text-white p-3 rounded-xl shadow-sm transition-all duration-200 hover:shadow-lg" aria-pressed="false">
+                <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24">
+                  <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 9H8a5 5 0 0 0 0 10h9m4-10-4-4m4 4-4 4"/>
+                </svg>
+              </button>
+              <button id="edit-save-btn" class="flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-xl shadow-sm transition-all duration-200 hover:shadow-lg" aria-pressed="false">
+                  <svg class="w-6 h-6 text-gray-800 dark:text-white" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" d="M5 3a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7.414A2 2 0 0 0 20.414 6L18 3.586A2 2 0 0 0 16.586 3H5Zm3 11a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v6H8v-6Zm1-7V5h6v2a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1Z" clip-rule="evenodd"/>
+                    <path fill-rule="evenodd" d="M14 17h-4v-2h4v2Z" clip-rule="evenodd"/>
+                  </svg>
+              </button>
+          </div>
+      </div>
+    </header>
+    <div id="desk-delete-form" class="desk-delete-form hidden">
+      <div class="fixed inset-0 bg-gray-500/45 transition-opacity z-40" aria-hidden="true"></div>
+        <div class="fixed inset-0 z-50 w-screen overflow-y-auto" role="dialog" aria-modal="true">
+          <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">s
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+              <!-- Header -->
+              <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-gray-200">
+                <div class="sm:flex sm:items-start">
+                  <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 class="text-lg font-medium leading-6 text-gray-900">
+                      Usuń stanowisko<span id="desk-name" class="font-semibold"></span>
+                    </h3>
+                    <p class="text-sm text-gray-500 mt-1">Tej operacji nie można cofnąć. Wszystkie rezerwacje dla tego biurka zostaną usunięte.</p>
+                  </div>
+                </div>
+              </div>
+              <!-- Main Content -->
+                    <div class="bg-white px-6 py-6 sm:p-8">
+                    <div class="space-y-6">
+                      <div>
+                        <div class="relative rounded-xl shadow-sm">
+                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-red-300" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-eraser-fill" viewBox="0 0 16 16">
+                              <path d="M8.086 2.207a2 2 0 0 1 2.828 0l3.879 3.879a2 2 0 0 1 0 2.828l-5.5 5.5A2 2 0 0 1 7.879 15H5.12a2 2 0 0 1-1.414-.586l-2.5-2.5a2 2 0 0 1 0-2.828zm.66 11.34L3.453 8.254 1.914 9.793a1 1 0 0 0 0 1.414l2.5 2.5a1 1 0 0 0 .707.293H7.88a1 1 0 0 0 .707-.293z"/>
+                            </svg>
+                          </div>
+                          <input type="text" id="delete-confirm-input" name="desk_id" 
+                            class="block w-full rounded-xl border-gray-200 bg-gray-50 pl-10 py-3 text-sm placeholder-red-500 text-red-500 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all" 
+                            placeholder='Aby potwierdzić usunięcie, wpisz "USUNIĘCIE"'>
+                          </div>
+                          <label id="incorrect-del-input" class="block text-sm font-medium text-rose-400 mb-1 hidden">Spróbuj ponownie.</label>
+                      </div>
+                    </div>
+                  </div>
+              <!-- Footer -->
+              <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 spacing-2">
+                <div class="grid grid-cols-2 gap-2">
+                <button id="del-cancel-btn" type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                  Anuluj
+                </button>
+                <button id="del-submit-btn" type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-violet-500 hover:bg-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                  Usuń
+                </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div id="desk-create-form" class="desk-create-form hidden">
+      <div class="fixed inset-0 bg-gray-500/45 transition-opacity z-40" aria-hidden="true"></div>
+        <div class="fixed inset-0 z-50 w-screen overflow-y-auto" role="dialog" aria-modal="true">
+          <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">s
+            <div class="relative transform overflow-hidden rounded-lg bg-white text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-2xl">
+              <!-- Header -->
+              <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 border-b border-gray-200">
+                <div class="sm:flex sm:items-start">
+                  <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                    <h3 class="text-lg font-medium leading-6 fontext-gray-900 font-semibold">
+                      Dodaj stanowisko<span id="desk-name" class="font-semibold"></span>
+                    </h3>
+                  </div>
+                </div>
+              </div>
+              <!-- Main Content -->
+                    <div class="bg-white px-6 py-6 sm:p-8">
+                    <div class="space-y-6">
+                      <div>
+                        <label for="desk_id" class="block text-sm font-semibold text-gray-700 mb-2">ID Stanowiska</label>
+                        <div class="relative rounded-xl shadow-sm">
+                          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                            </svg>
+                          </div>
+                          <input type="text" id="desk-id" name="desk_id" 
+                            class="block w-full rounded-xl border-gray-200 bg-gray-50 pl-10 py-3 text-sm placeholder-gray-400 focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all" 
+                            placeholder="np. DESK-R1-01">
+                        </div>
+                      </div>
+                      <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-2">
+                          <label for="width" class="block text-sm font-semibold text-gray-700">Szerokość (px)</label>
+                          <div class="relative">
+                            <input type="number" id="width" name="width" value="100" 
+                              class="block w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all" 
+                              placeholder="Domyślnie: 100px">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 text-xs font-medium">
+                            </div>
+                          </div>
+                        </div>
+                        <div class="space-y-2">
+                          <label for="height" class="block text-sm font-semibold text-gray-700">Wysokość (px)</label>
+                          <div class="relative">
+                            <input type="number" id="height" name="height" value="200"
+                              class="block w-full rounded-xl border-gray-200 bg-gray-50 px-4 py-3 text-sm focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all" 
+                              placeholder="Domyślnie: 200px">
+                            <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none text-gray-400 text-xs font-medium">
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div class="relative py-2">
+                        <div class="relative inset-0 flex items-center" aria-hidden="true">
+                          <div class="w-full border-t border-gray-100"></div>
+                        </div>
+                        <label id="create-error" class="block text-sm font-semibold text-rose-400 hidden">Stanowisko o podanym ID już istnieje. Spróbuj ponownie</label>
+                      </div>
+                      
+                    </div>
+                  </div>
+              <!-- Footer -->
+              <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse sm:px-6 spacing-2">
+                <div class="grid grid-cols-2 gap-2">
+                <button id="cancel-btn" type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                  Anuluj
+                </button>
+                <button id="submit-btn" type="button" class="mt-3 inline-flex w-full justify-center rounded-md bg-violet-500 hover:bg-violet-600 px-3 py-2 text-sm font-semibold text-white shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto">
+                  Dodaj
+                </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <main class="flex-1 w-full max-w-7xl mx-auto px-4 py-10 overflow-auto">
+      <section class="flex justify-center">
+        <div id="desk-layout-container" class="relative w-full max-w-5xl h-[700px] sm:h-[900px] bg-white border border-gray-200 rounded-2xl shadow-sm" style="background-image: radial-gradient(#e5e7eb 1.5px, transparent 1.5px); background-size: 40px 40px;">
+            </div>
+      </section>
+    </main>
+  </body>
+</html>
